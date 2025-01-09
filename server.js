@@ -2,11 +2,14 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config(); // Load environment variables from .env
-
+require('dotenv').config(); 
 // Import routes
 const gridRoutes = require('./routes/gridRoutes'); // Grid-related routes
 const authRoutes = require('./routes/authRoutes'); // Authentication-related routes
+
+//Logging env variables
+console.log('JWT_SECRET:', process.env.JWT_SECRET);
+console.log('MONGO_URI:', process.env.MONGO_URI);
 
 // Connect to MongoDB
 mongoose

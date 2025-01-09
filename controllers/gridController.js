@@ -1,4 +1,5 @@
-const GridItem = require('../models/GridItem');
+
+const GridItem = require('../models/userItems');
 
 exports.uploadGridItem = async (req, res) => {
     try {
@@ -28,3 +29,4 @@ exports.getGridItems = async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch grid items' });
     }
 };
+
