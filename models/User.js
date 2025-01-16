@@ -1,9 +1,12 @@
 const mongoose = require('mongoose');
 
-const UserSchema = new mongoose.Schema({
-    username: { type: String, unique: true, required: true },
-    email: { type: String, unique: true, required: true },
+const userSchema = new mongoose.Schema({
+    username: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    linkedEbay: { type: Boolean, default: false }, 
+    ebayToken: { type: String, default: null }, 
+    ebayTokenExpiry: { type: Date, default: null }, 
 });
 
-module.exports = mongoose.model('User', UserSchema);
+module.exports = mongoose.model('User', userSchema);

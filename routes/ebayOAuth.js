@@ -1,6 +1,8 @@
 const express = require('express');
 const axios = require('axios');
 const qs = require('qs');
+const authenticateJWT = require('../middleware/authenticateJWT'); // JWT authentication middleware
+const User = require('../models/User'); // Import your User model
 
 const EBAY_CLIENT_ID = process.env.EBAY_CLIENT_ID;
 const EBAY_CLIENT_SECRET = process.env.EBAY_CLIENT_SECRET;
@@ -22,11 +24,11 @@ const scopes = [
 
 const ebayAuthURL = `https://auth.ebay.com/oauth2/authorize?client_id=${EBAY_CLIENT_ID}&response_type=code&redirect_uri=${EBAY_REDIRECT_URI}&scope=${scopes.join(' ')}`;
 
-router.get('/login-with-ebay', (req, res) => {
+router.get('/login-with-ebay', authenticateJWT,(req, res) => {
     res.redirect(ebayAuthURL);
 });
 
-router.get('/callback', async (req, res) => {
+router.get('/callback',authenticateJWT, async (req, res) => {
     const authorizationCode = req.query.code;
 
     if (!authorizationCode) {
@@ -50,6 +52,21 @@ router.get('/callback', async (req, res) => {
         );
 
         const accessToken = tokenResponse.data.access_token;
+        const userId = req.user.id; //I am also getting the USER ID from when to link the ebay token & username to store / update db
+        const user = await User.findByIdAndUpdate(
+            userId,
+            {
+                linkedEbay: true,
+                ebayToken: accessToken,
+                ebayTokenExpiry: Date.now() + tokenResponse.data.expires_in * 1000, // Calculate expiry time
+            },
+            { new: true } // Return the updated document
+        );
+
+        if (!user) {
+            return res.status(404).send('User not found.');
+        }
+        
       console.log({accessToken});
     res.redirect(`${FRONTEND_URL}?success=true`);
     } catch (error) {

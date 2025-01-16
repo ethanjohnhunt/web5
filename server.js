@@ -2,17 +2,13 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-
-require('dotenv').config(); 
+require('dotenv').config();
 
 // Import routes
-const ebayOAuth = require('./routes/ebayOAuth');
-const gridRoutes = require('./routes/gridRoutes'); // Grid-related routes
-const authRoutes = require('./routes/authRoutes'); // Authentication-related routes
-
-//Logging env variables
-console.log('JWT_SECRET:', process.env.JWT_SECRET);
-console.log('MONGO_URI:', process.env.MONGO_URI);
+const authRoutes = require('./routes/authRoutes');
+const ebayOAuthRoutes = require('./routes/ebayOAuth');
+const gridRoutes = require('./routes/gridRoutes');
+const authenticateJWT = require('./middleware/authenticateJWT'); // Middleware to protect routes
 
 // Connect to MongoDB
 mongoose
@@ -23,27 +19,22 @@ mongoose
 const app = express();
 
 // Middleware
-app.use(express.json()); // Parse JSON request bodies
-app.use(cors({
+app.use(express.json());
+app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:3000' }));
 
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000', // Allow requests from frontend during development
-}));
+// Public routes
+app.use('/api/auth', authRoutes);
 
-// Serve static files from React build folder (for production)
+// Protected routes
+app.use('/api/grid', authenticateJWT, gridRoutes);
+app.use('/api/ebay', authenticateJWT, ebayOAuthRoutes);
+
+// Serve static React files in production
 app.use(express.static(path.join(__dirname, 'build')));
-
-// API Routes
-app.use('/api/grid', gridRoutes); // Grid-related routes
-app.use('/api/auth', authRoutes); // Authentication-related routes
-app.use('/api/ebay', ebayOAuth); // Add eBay-related routes
-
-// Catch-all route to serve React frontend (for React Router)
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
 // Start server
 const PORT = process.env.PORT || 5500;
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

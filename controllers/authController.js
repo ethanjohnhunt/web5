@@ -1,16 +1,15 @@
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 const saltRounds = 10;
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRATION = '1h'; 
-
+const JWT_SECRET = process.env.JWT_SECRET; // Ensure this is defined in your environment variables
+const JWT_EXPIRATION = '1d'; // Token expiration (e.g., 1 day)
 exports.registerUser = async (req, res) => {
     const { username, password, email } = req.body;
 
     try {
-        // Check if user already exists
+        // Check if the user already exists
         const existingUser = await User.findOne({ $or: [{ username }, { email }] });
 
         if (existingUser) {
@@ -22,30 +21,28 @@ exports.registerUser = async (req, res) => {
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        // Create and save the new user
+        // Create a new user
         const newUser = new User({ username, email, password: hashedPassword });
         await newUser.save();
 
-        // Generate a JWT
+        // Generate a JWT for the new user
         const token = jwt.sign(
             { id: newUser._id, username: newUser.username, email: newUser.email },
             JWT_SECRET,
             { expiresIn: JWT_EXPIRATION }
         );
 
-        // Send the JWT and user info back to the frontend
+        // Respond with the token and user details
         res.status(201).json({
             message: 'User registered successfully!',
-            token, // JWT token for immediate authentication
-            user: { id: newUser._id, username: newUser.username, email: newUser.email },
+            token,
+            user: { id: newUser._id, username: newUser.username, email: newUser.email }
         });
     } catch (err) {
         console.error('Error during registration:', err);
         res.status(500).json({ error: 'An internal error occurred.' });
     }
 };
-
-
 exports.loginUser = async (req, res) => {
     const { username, password } = req.body;
 
@@ -57,23 +54,24 @@ exports.loginUser = async (req, res) => {
             return res.status(401).json({ error: 'Invalid username or password.' });
         }
 
-        // Compare passwords
+        // Compare the provided password with the stored hash
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
             return res.status(401).json({ error: 'Invalid username or password.' });
         }
 
-        // Generate JWT
+        // Generate a JWT
         const token = jwt.sign(
             { id: user._id, username: user.username, email: user.email },
             JWT_SECRET,
             { expiresIn: JWT_EXPIRATION }
         );
 
+        // Respond with the token and user details
         res.status(200).json({
             message: 'Login successful!',
-            token, // Send the token to the frontend
+            token,
             user: { id: user._id, username: user.username, email: user.email }
         });
     } catch (err) {

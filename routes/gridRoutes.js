@@ -3,6 +3,9 @@ const cloudinary = require('../utils/cloudinary');
 const upload = require('../middleware/multer');
 const router = express.Router();
 
+// Remove unnecessary routes
+// router.get('/items', getGridItems); // Remove if not needed
+
 // Upload image to Cloudinary
 router.post('/upload', upload.single('image'), async (req, res) => {
   try {

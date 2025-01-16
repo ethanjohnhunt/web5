@@ -1,14 +1,26 @@
-    const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 
-    /**
-     * Generate a JWT for a user.
-     * @param {Object} payload - The payload to encode in the token (e.g., user ID, username).
-     * @param {string} secret - The secret key to sign the token.
-     * @param {Object} options - Additional options (e.g., token expiration time).
-     * @returns {string} - The signed JWT.
-     */
-    const generateToken = (payload, secret, options = {}) => {
-        return jwt.sign(payload, secret, options);
-    };
+const JWT_SECRET = process.env.JWT_SECRET; 
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET; 
+const ACCESS_TOKEN_EXPIRATION = '1h'; 
+const REFRESH_TOKEN_EXPIRATION = '7d';
 
-    module.exports = generateToken;
+/**
+ * Generate an access token.
+ * @param {Object} payload 
+ * @returns {string} 
+ */
+function generateAccessToken(payload) {
+    return jwt.sign(payload, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRATION });
+}
+
+/**
+ * Generate a refresh token.
+ * @param {Object} payload 
+ * @returns {string} 
+ */
+function generateRefreshToken(payload) {
+    return jwt.sign(payload, REFRESH_TOKEN_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRATION });
+}
+
+module.exports = { generateAccessToken, generateRefreshToken };
