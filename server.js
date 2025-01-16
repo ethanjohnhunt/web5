@@ -6,7 +6,7 @@ const path = require('path');
 require('dotenv').config(); 
 
 // Import routes
-const ebayRoutes = require('./routes/ebayRoutes'); // Import the eBay routes
+const ebayOAuth = require('./routes/ebayOAuth');
 const gridRoutes = require('./routes/gridRoutes'); // Grid-related routes
 const authRoutes = require('./routes/authRoutes'); // Authentication-related routes
 
@@ -35,7 +35,7 @@ app.use(express.static(path.join(__dirname, 'build')));
 // API Routes
 app.use('/api/grid', gridRoutes); // Grid-related routes
 app.use('/api/auth', authRoutes); // Authentication-related routes
-app.use('/api/ebay', ebayRoutes); // Add eBay-related routes
+app.use('/api/ebay', ebayOAuth); // Add eBay-related routes
 
 // Catch-all route to serve React frontend (for React Router)
 app.get('*', (req, res) => {
