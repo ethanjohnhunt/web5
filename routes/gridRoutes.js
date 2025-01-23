@@ -3,10 +3,6 @@ const cloudinary = require('../utils/cloudinary');
 const upload = require('../middleware/multer');
 const router = express.Router();
 
-// Remove unnecessary routes
-// router.get('/items', getGridItems); // Remove if not needed
-
-// Upload image to Cloudinary
 router.post('/upload', upload.single('image'), async (req, res) => {
   try {
     const result = await new Promise((resolve, reject) => {
@@ -20,7 +16,7 @@ router.post('/upload', upload.single('image'), async (req, res) => {
       success: true,
       message: 'Image uploaded successfully',
       data: {
-        url: result.secure_url, // Cloudinary image URL
+        url: result.secure_url, 
       },
     });
   } catch (error) {

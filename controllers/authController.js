@@ -32,11 +32,19 @@ exports.registerUser = async (req, res) => {
             { expiresIn: JWT_EXPIRATION }
         );
 
-        // Respond with the token and user details
+        // Set the token as an HttpOnly cookie
+        res.cookie('authToken', token, {
+            httpOnly: true, // Prevent JavaScript access to the cookie
+            secure: false, // Set to true in production with HTTPS
+            sameSite: 'strict', // Mitigate CSRF
+            maxAge: 24 * 60 * 60 * 1000, // 1 day
+        });
+
+        // Respond with user details (excluding the token for security reasons)
         res.status(201).json({
             message: 'User registered successfully!',
-            token,
-            user: { id: newUser._id, username: newUser.username, email: newUser.email }
+            user: { id: newUser._id, username: newUser.username, email: newUser.email },
+            redirectTo: '/home', // Send the path for redirection
         });
     } catch (err) {
         console.error('Error during registration:', err);
@@ -54,7 +62,7 @@ exports.loginUser = async (req, res) => {
             return res.status(401).json({ error: 'Invalid username or password.' });
         }
 
-        // Compare the provided password with the stored hash
+        // Compare the  password with the stored hash pword
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
@@ -68,11 +76,18 @@ exports.loginUser = async (req, res) => {
             { expiresIn: JWT_EXPIRATION }
         );
 
-        // Respond with the token and user details
+        res.cookie('authToken', token, {
+            httpOnly: true, 
+            secure: false, 
+            sameSite: 'strict', // Mitigate CSRF
+            maxAge: 24 * 60 * 60 * 1000, 
+        });
+
+        // Respond with user details (excluding the token for security reasons)
         res.status(200).json({
             message: 'Login successful!',
-            token,
-            user: { id: user._id, username: user.username, email: user.email }
+            user: { id: user._id, username: user.username, email: user.email },
+            redirectTo: '/home', // Send the path for redirection
         });
     } catch (err) {
         console.error('Login error:', err);

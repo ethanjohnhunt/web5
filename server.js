@@ -20,7 +20,10 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:3000' }));
+app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000', credentials: true, // Allow cookies to be sent
+}));
+app.use(require('cookie-parser')());
 
 // Public routes
 app.use('/api/auth', authRoutes);
@@ -29,12 +32,23 @@ app.use('/api/auth', authRoutes);
 app.use('/api/grid', authenticateJWT, gridRoutes);
 app.use('/api/ebay', authenticateJWT, ebayOAuthRoutes);
 
-// Serve static React files in production
+
+// Serve static React files
 app.use(express.static(path.join(__dirname, 'build')));
+
+// Protect /home route
+app.use('/home', authenticateJWT, (req, res) => {
+    if (req.user) { 
+        res.sendFile(path.join(__dirname, 'build', 'index.html'));
+    } else {
+        res.redirect('/login',);
+    }
+});
+
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
-// Start server
+
 const PORT = process.env.PORT || 5500;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

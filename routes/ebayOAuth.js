@@ -75,4 +75,31 @@ router.get('/callback',authenticateJWT, async (req, res) => {
     }
 });
 
+router.get('/getListings', authenticateJWT, async (req, res) => {
+  try {
+      // Retrieve the authenticated user's eBay token from the database
+      const user = await User.findById(req.user.id);
+
+      if (!user || !user.ebayToken) {
+          return res.status(401).json({ error: 'eBay account not linked.' });
+      }
+
+      // Call eBay's API to fetch inventory items
+      const response = await axios.get('https://api.ebay.com/sell/inventory/v1/inventory_item?limit=50', {
+          headers: {
+              Authorization: `Bearer ${user.ebayToken}`,
+          },
+      });
+
+      // Send the eBay listings back to the frontend
+      res.status(200).json(response.data);
+  } catch (error) {
+      console.error('Error fetching eBay listings:', error.response?.data || error.message);
+      if (error.response?.status === 401) {
+          return res.status(401).json({ error: 'eBay token expired or invalid. Please relink your eBay account.' });
+      }
+      res.status(500).json({ error: 'Failed to fetch eBay listings.' });
+  }
+});
+
 module.exports = router;
